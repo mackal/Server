@@ -73,6 +73,9 @@ Doors::Doors(const Door* door)
 
 	is_ldon_door = door->is_ldon_door;
 	client_version_mask = door->client_version_mask;
+
+	raid_radius = door->raid_radius;
+	group_radius = door->group_radius;
 }
 
 Doors::Doors(const char *dmodel, float dx, float dy, float dz, float dheading, uint8 dopentype, uint16 dsize)
@@ -111,6 +114,9 @@ Doors::Doors(const char *dmodel, float dx, float dy, float dz, float dheading, u
 
 	is_ldon_door = 0;
 	client_version_mask = 4294967295;
+
+	raid_radius = 0;
+	group_radius = 0;
 }
 
 
@@ -145,6 +151,7 @@ void Doors::HandleClick(Client* sender, uint8 trigger)
 	_log(DOORS__INFO, "%s clicked door %s (dbid %d, eqid %d) at (%.4f,%.4f,%.4f @%.4f)", sender->GetName(), door_name, db_id, door_id, pos_x, pos_y, pos_z, heading);
 	_log(DOORS__INFO, "  incline %d, opentype %d, lockpick %d, key %d, nokeyring %d, trigger %d type %d, param %d", incline, opentype, lockpick, keyitem, nokeyring, trigger_door, trigger_type, door_param);
 	_log(DOORS__INFO, "  size %d, invert %d, dest: %s (%.4f,%.4f,%.4f @%.4f)", size, invert_state, dest_zone, dest_x, dest_y, dest_z, dest_heading);
+	_log(DOORS__INFO, "  raid radius %d, group radius %d", raid_radius, group_radius);
 
     EQApplicationPacket* outapp = new EQApplicationPacket(OP_MoveDoor, sizeof(MoveDoor_Struct));
 	MoveDoor_Struct* md = (MoveDoor_Struct*)outapp->pBuffer;
@@ -432,22 +439,99 @@ void Doors::HandleClick(Client* sender, uint8 trigger)
 			}		
 			if(database.GetZoneID(dest_zone) == zone->GetZoneID())
 			{
-				sender->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+                // raid_radius and group_radius check if the PC is in a certain range, -1 (less than 0) is zone wide
+				if(raid_radius != 0 && sender->HasRaid())
+				{
+					for(int i = 0; i < sender->GetRaid()->RaidCount(); i++)
+					{
+						Client *raid_member = sender->GetRaid()->GetClientByIndex(i);
+						if(raid_member->CalculateDistance(pos_x, pos_y, pos_z) <= raid_radius || raid_radius < 0)
+							raid_member->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else if(group_radius != 0 && sender->HasGroup())
+				{
+					for(int i =0; i < sender->GetGroup()->GroupCount(); i++)
+					{
+						Client *group_member = sender->GetGroup()->members[i]->CastToClient();
+						if(group_member->CalculateDistance(pos_x, pos_y, pos_z) <= group_radius || group_radius < 0)
+							group_member->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else
+				{
+					sender->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+				}
 			}
 			else
 			{
-				sender->MovePC(database.GetZoneID(dest_zone), dest_instance_id, dest_x, dest_y, dest_z, dest_heading);
+				if(raid_radius != 0 && sender->HasRaid())
+				{
+					for(int i = 0; i < sender->GetRaid()->RaidCount(); i++)
+					{
+						Client *raid_member = sender->GetRaid()->GetClientByIndex(i);
+						if(raid_member->CalculateDistance(pos_x, pos_y, pos_z) <= raid_radius || raid_radius < 0)
+							raid_member->MovePC(database.GetZoneID(dest_zone), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else if(group_radius != 0 && sender->HasGroup())
+				{
+					for(int i =0; i < sender->GetGroup()->GroupCount(); i++)
+					{
+						Client *group_member = sender->GetGroup()->members[i]->CastToClient();
+						if(group_member->CalculateDistance(pos_x, pos_y, pos_z) <= group_radius || group_radius < 0)
+							group_member->MovePC(database.GetZoneID(dest_zone), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else
+				{
+					sender->MovePC(database.GetZoneID(dest_zone), dest_instance_id, dest_x, dest_y, dest_z, dest_heading);
+				}
 			}
 		}
 		if (( !IsDoorOpen() || opentype == 58 ) && (!keyneeded)) 
 		{
 			if(database.GetZoneID(dest_zone) == zone->GetZoneID())
 			{
-				sender->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+				if(raid_radius != 0 && sender->HasRaid())
+				{
+					for(int i = 0; i < sender->GetRaid()->RaidCount(); i++)
+					{
+						Client *raid_member = sender->GetRaid()->GetClientByIndex(i);
+						if(raid_member->CalculateDistance(pos_x, pos_y, pos_z) <= raid_radius || raid_radius < 0)
+							raid_member->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else if(group_radius != 0 && sender->HasGroup())
+				{
+					for(int i =0; i < sender->GetGroup()->GroupCount(); i++)
+					{
+						Client *group_member = sender->GetGroup()->members[i]->CastToClient();
+						if(group_member->CalculateDistance(pos_x, pos_y, pos_z) <= group_radius || group_radius < 0)
+							group_member->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else
+				{
+					sender->MovePC(zone->GetZoneID(), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+				}
 			}
 			else
 			{
-				sender->MovePC(database.GetZoneID(dest_zone), dest_instance_id, dest_x, dest_y, dest_z, dest_heading);
+				if(raid_radius != 0 && sender->HasRaid())
+				{
+					for(int i = 0; i < sender->GetRaid()->RaidCount(); i++)
+					{
+						Client *raid_member = sender->GetRaid()->GetClientByIndex(i);
+						if(raid_member->CalculateDistance(pos_x, pos_y, pos_z) <= raid_radius || raid_radius < 0)
+							raid_member->MovePC(database.GetZoneID(dest_zone), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else if(group_radius != 0 && sender->HasGroup())
+				{
+					for(int i =0; i < sender->GetGroup()->GroupCount(); i++)
+					{
+						Client *group_member = sender->GetGroup()->members[i]->CastToClient();
+						if(group_member->CalculateDistance(pos_x, pos_y, pos_z) <= group_radius || group_radius < 0)
+							group_member->MovePC(database.GetZoneID(dest_zone), zone->GetInstanceID(), dest_x, dest_y, dest_z, dest_heading);
+					}
+				} else
+				{
+					sender->MovePC(database.GetZoneID(dest_zone), dest_instance_id, dest_x, dest_y, dest_z, dest_heading);
+				}
 			}
 		}
 	}
@@ -665,38 +749,6 @@ int32 ZoneDatabase::GetDoorsDBCountPlusOne(const char *zone_name, int16 version)
 	return -1;
 }
 
-/*
-extern "C" bool extDBLoadDoors(int32 iDoorCount, uint32 iMaxDoorID) { return database.DBLoadDoors(iDoorCount, iMaxDoorID); }
-const Door* ZoneDatabase::GetDoor(uint8 door_id, const char* zone_name) {
-	for(uint32 i=0; i!=max_door_type;i++)
-	{
-        const Door* door;
-        door = GetDoorDBID(i);
-        if (!door)
-		continue;
-	if(door->door_id == door_id && strcasecmp(door->zone_name, zone_name) == 0)
-	return door;
-	}
-return 0;
-}
-
-const Door* ZoneDatabase::GetDoorDBID(uint32 db_id) {
-	return EMuShareMemDLL.Doors.GetDoor(db_id);
-}
-
-bool ZoneDatabase::LoadDoors() {
-	if (!EMuShareMemDLL.Load())
-		return false;
-	int32 tmp = 0;
-	tmp = GetDoorsCount(&max_door_type);
-	if (tmp == -1) {
-		cout << "Error: ZoneDatabase::LoadDoors-ShareMem: GetDoorsCount() returned < 0" << endl;
-		return false;
-	}
-	bool ret = EMuShareMemDLL.Doors.DLLLoadDoors(&extDBLoadDoors, sizeof(Door), &tmp, &max_door_type);
-	return ret;
-}*/
-
 bool ZoneDatabase::LoadDoors(int32 iDoorCount, Door *into, const char *zone_name, int16 version) {
 	LogFile->write(EQEMuLog::Status, "Loading Doors from database...");
 	char errbuf[MYSQL_ERRMSG_SIZE];
@@ -707,7 +759,8 @@ bool ZoneDatabase::LoadDoors(int32 iDoorCount, Door *into, const char *zone_name
 //	Door tmpDoor;
 	MakeAnyLenString(&query, "SELECT id,doorid,zone,name,pos_x,pos_y,pos_z,heading,"
 		"opentype,guild,lockpick,keyitem,nokeyring,triggerdoor,triggertype,dest_zone,dest_instance,dest_x,"
-		"dest_y,dest_z,dest_heading,door_param,invert_state,incline,size,is_ldon_door,client_version_mask "
+		"dest_y,dest_z,dest_heading,door_param,invert_state,incline,size,is_ldon_door,client_version_mask,"
+		"raid_radius,group_radius "
 		"FROM doors WHERE zone='%s' AND (version=%u OR version=-1) ORDER BY doorid asc", zone_name, version);
 	if (RunQuery(query, strlen(query), errbuf, &result)) {
 		safe_delete_array(query);
@@ -745,6 +798,8 @@ bool ZoneDatabase::LoadDoors(int32 iDoorCount, Door *into, const char *zone_name
 			into[r].size=atoi(row[24]);
 			into[r].is_ldon_door=atoi(row[25]);
 			into[r].client_version_mask = (uint32)strtoul(row[26], NULL, 10);
+			into[r].raid_radius=atoi(row[27]);
+			into[r].group_radius=atoi(row[28]);
 		}
 		mysql_free_result(result);
 	}

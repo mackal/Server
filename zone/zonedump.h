@@ -280,6 +280,8 @@ struct Door {
 	float   dest_heading;
 	uint8    is_ldon_door;
 	uint32   client_version_mask;
+	int16	raid_radius;
+	int16	group_radius;
 };
 
 #pragma pack()
