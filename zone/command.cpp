@@ -269,8 +269,8 @@ int command_init(void) {
 		command_add("reloadquest"," - Clear quest cache (any argument causes it to also stop all timers)",150,command_reloadqst) ||
 		command_add("reloadqst",NULL,0,command_reloadqst) ||
 		command_add("reloadpl",NULL,0,command_reloadqst) ||
-		command_add("reloadworld",NULL,0,command_reloadworld) ||
-		command_add("reloadlevelmods",NULL,0,command_reloadlevelmods) ||
+		command_add("reloadworld",NULL,255,command_reloadworld) ||
+		command_add("reloadlevelmods",NULL,255,command_reloadlevelmods) ||
 		command_add("rq",NULL,0,command_reloadqst) ||
 		command_add("reloadzonepoints","- Reload zone points from database",150,command_reloadzps) ||
 		command_add("reloadzps",NULL,0,command_reloadzps) ||
@@ -11373,7 +11373,14 @@ void command_camerashake(Client *c, const Seperator *sep)
 
 void command_disarmtrap(Client *c, const Seperator *sep) 
 {
-    Mob * target = c->GetTarget();
+	Mob *target = c->GetTarget();
+
+	if(!target)
+	{
+		c->Message(13, "You must have a target.");
+		return;
+	}
+
 	if(target->IsNPC())
 	{
 		if(c->HasSkill(DISARM_TRAPS))
@@ -11392,7 +11399,13 @@ void command_disarmtrap(Client *c, const Seperator *sep)
 
 void command_sensetrap(Client *c, const Seperator *sep) 
 {
-    Mob * target = c->GetTarget();
+	Mob * target = c->GetTarget();
+	if(!target)
+	{
+		c->Message(13, "You must have a target.");
+		return;
+	}
+
 	if(target->IsNPC())
 	{
 		if(c->HasSkill(SENSE_TRAPS))
@@ -11411,7 +11424,13 @@ void command_sensetrap(Client *c, const Seperator *sep)
 
 void command_picklock(Client *c, const Seperator *sep) 
 {
-    Mob * target = c->GetTarget();
+	Mob * target = c->GetTarget();
+	if(!target)
+	{
+		c->Message(13, "You must have a target.");
+		return;
+	}
+
 	if(target->IsNPC())
 	{
 		if(c->HasSkill(PICK_LOCK))
