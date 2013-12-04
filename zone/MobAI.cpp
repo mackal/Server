@@ -233,7 +233,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 
 					case SpellType_Charm:
 					{
-						if(MakeRandomInt(0, 99) < 20)
+						if(!IsPet() && MakeRandomInt(0, 99) < 20)
 						{
 							Mob * chrmTar = GetHateRandom();
 							if(chrmTar && chrmTar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0)
