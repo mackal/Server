@@ -389,6 +389,8 @@ RULE_BOOL ( NPC, SmartLastFightingDelayMoving, true)
 RULE_BOOL ( NPC, ReturnNonQuestNoDropItems, false)	// Returns NO DROP items on NPCs that don't have an EVENT_TRADE sub in their script
 RULE_INT ( NPC, StartEnrageValue, 9) // % HP that an NPC will begin to enrage
 RULE_BOOL ( NPC, LiveLikeEnrage, false) // If set to true then only player controlled pets will enrage
+RULE_INT ( NPC, AISpellMinRecast, 5) // Min spell recast timer in seconds (if below this it has a chance of being between this and AISpellRandMax seconds) to prevent chain casting stuff
+RULE_INT ( NPC, AISpellRandMax, 30) // Cap on rand recast timer in seconds
 RULE_CATEGORY_END()
 
 RULE_CATEGORY ( Aggro )

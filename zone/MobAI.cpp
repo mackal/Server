@@ -94,7 +94,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 				dist2 <= spells[AIspells[i].spellid].range*spells[AIspells[i].spellid].range
 				)
 				&& (mana_cost <= GetMana() || GetMana() == GetMaxMana())
-				&& (AIspells[i].time_cancast+(MakeRandomInt(0, 4))) <= Timer::GetCurrentTime() //break up the spelling casting over a period of time.
+				&& (AIspells[i].time_cancast + (MakeRandomInt(0, 4) * 1000)) <= Timer::GetCurrentTime() //break up the spelling casting over a period of time.
 				) {
 
 #if MobAI_DEBUG_Spells >= 21
@@ -1862,21 +1862,27 @@ void NPC::AI_Event_SpellCastFinished(bool iCastSucceeded, uint8 slot) {
 		uint32 recovery_time = 0;
 		if (iCastSucceeded) {
 			if (casting_spell_AIindex < AIspells.size()) {
-					recovery_time += spells[AIspells[casting_spell_AIindex].spellid].recovery_time;
-					if (AIspells[casting_spell_AIindex].recast_delay >= 0)
-					{
-						if (AIspells[casting_spell_AIindex].recast_delay < 10000)
-							AIspells[casting_spell_AIindex].time_cancast = Timer::GetCurrentTime() + (AIspells[casting_spell_AIindex].recast_delay*1000);
-					}
-					else
+				recovery_time += spells[AIspells[casting_spell_AIindex].spellid].recovery_time;
+				if (AIspells[casting_spell_AIindex].recast_delay >= 0) {
+					if (AIspells[casting_spell_AIindex].recast_delay < 10000)
+						AIspells[casting_spell_AIindex].time_cancast = Timer::GetCurrentTime() + (AIspells[casting_spell_AIindex].recast_delay * 1000);
+				} else {
+					if (spells[AIspells[casting_spell_AIindex].spellid].recast_time <= (RuleI(NPC, AISpellMinRecast) * 1000)) {
+						if (spells[AIspells[casting_spell_AIindex].spellid].recast_time == 0 || MakeRandomInt(0, 1))
+							AIspells[casting_spell_AIindex].time_cancast = Timer::GetCurrentTime() + (MakeRandomInt(RuleI(NPC, AISpellMinRecast), RuleI(NPC, AISpellRandMax) * 1000));
+						else
+							AIspells[casting_spell_AIindex].time_cancast = Timer::GetCurrentTime() + spells[AIspells[casting_spell_AIindex].spellid].recast_time;
+					} else {
 						AIspells[casting_spell_AIindex].time_cancast = Timer::GetCurrentTime() + spells[AIspells[casting_spell_AIindex].spellid].recast_time;
+					}
+				}
 			}
 			if (recovery_time < AIautocastspell_timer->GetSetAtTrigger())
 				recovery_time = AIautocastspell_timer->GetSetAtTrigger();
 			AIautocastspell_timer->Start(recovery_time, false);
-		}
-		else
+		} else {
 			AIautocastspell_timer->Start(800, false);
+		}
 		casting_spell_AIindex = AIspells.size();
 	}
 }
