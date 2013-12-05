@@ -103,7 +103,7 @@ public:
 	int GetSwarmTarget();
 	void SetSwarmTarget(int target);
 	void ModifyNPCStat(const char *stat, const char *value);
-	void AddAISpell(int priority, int spell_id, int type, int mana_cost, int recast_delay, int resist_adjust);
+	void AddAISpell(int priority, int spell_id, int type, int mana_cost, int recast_delay, int chance, int resist_adjust);
 	void RemoveAISpell(int spell_id);
 	void SetSpellFocusDMG(int focus);
 	void SetSpellFocusHeal(int focus);

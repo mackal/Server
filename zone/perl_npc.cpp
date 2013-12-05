@@ -1911,7 +1911,7 @@ XS(XS_NPC_AddSpellToNPCList)
 {
 	dXSARGS;
 	if (items != 7)
-		Perl_croak(aTHX_ "Usage: NPC::AddAISpell(THIS, priority, spell_id, type, mana_cost, recast_delay, resist_adjust)");
+		Perl_croak(aTHX_ "Usage: NPC::AddAISpell(THIS, priority, spell_id, type, mana_cost, recast_delay, chance, resist_adjust)");
 	{
 		NPC * THIS;
 		int	priority = (int)SvIV(ST(1));
@@ -1919,7 +1919,8 @@ XS(XS_NPC_AddSpellToNPCList)
 		int	type = (int)SvIV(ST(3));
 		int	mana_cost = (int)SvIV(ST(4));
 		int	recast_delay = (int)SvIV(ST(5));
-		int	resist_adjust = (int)SvIV(ST(6));
+		int	chance = (int)SvIV(ST(6));
+		int	resist_adjust = (int)SvIV(ST(7));
 
 		if (sv_derived_from(ST(0), "NPC")) {
 			IV tmp = SvIV((SV*)SvRV(ST(0)));
@@ -1930,7 +1931,7 @@ XS(XS_NPC_AddSpellToNPCList)
 		if(THIS == nullptr)
 			Perl_croak(aTHX_ "THIS is nullptr, avoiding crash.");
 
-		THIS->AddSpellToNPCList(priority, spell_id, type, mana_cost, recast_delay, resist_adjust);
+		THIS->AddSpellToNPCList(priority, spell_id, type, mana_cost, recast_delay, chance, resist_adjust);
 	}
 	XSRETURN_EMPTY;
 }
@@ -2226,7 +2227,7 @@ XS(boot_NPC)
 		newXSproto(strcpy(buf, "GetSwarmTarget"), XS_NPC_GetSwarmTarget, file, "$");
 		newXSproto(strcpy(buf, "SetSwarmTarget"), XS_NPC_SetSwarmTarget, file, "$$");
 		newXSproto(strcpy(buf, "ModifyNPCStat"), XS_NPC_ModifyNPCStat, file, "$$$");
-		newXSproto(strcpy(buf, "AddAISpell"), XS_NPC_AddSpellToNPCList, file, "$$$$$$$");
+		newXSproto(strcpy(buf, "AddAISpell"), XS_NPC_AddSpellToNPCList, file, "$$$$$$$$");
 		newXSproto(strcpy(buf, "RemoveAISpell"), XS_NPC_RemoveSpellFromNPCList, file, "$$");
 		newXSproto(strcpy(buf, "SetSpellFocusDMG"), XS_NPC_SetSpellFocusDMG, file, "$$");
 		newXSproto(strcpy(buf, "SetSpellFocusHeal"), XS_NPC_SetSpellFocusHeal, file, "$$");

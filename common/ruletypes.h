@@ -391,6 +391,18 @@ RULE_INT ( NPC, StartEnrageValue, 9) // % HP that an NPC will begin to enrage
 RULE_BOOL ( NPC, LiveLikeEnrage, false) // If set to true then only player controlled pets will enrage
 RULE_INT ( NPC, AISpellMinRecast, 5) // Min spell recast timer in seconds (if below this it has a chance of being between this and AISpellRandMax seconds) to prevent chain casting stuff
 RULE_INT ( NPC, AISpellRandMax, 30) // Cap on rand recast timer in seconds
+RULE_INT ( NPC, AIDefaultNukeChance, 70) // Chances to cast spell type in NPC::AICastSpell
+RULE_INT ( NPC, AIDefaultRootChance, 50)
+RULE_INT ( NPC, AIDefaultPetChance, 25)
+RULE_INT ( NPC, AIDefaultLifetapChance, 50)
+RULE_INT ( NPC, AIDefaultSnareChance, 50)
+RULE_INT ( NPC, AIDefaultDOTChance, 60)
+RULE_INT ( NPC, AIDefaultDispelChance, 15)
+RULE_INT ( NPC, AIDefaultInCombatBuffChance, 50)
+RULE_INT ( NPC, AIDefaultMezChance, 20)
+RULE_INT ( NPC, AIDefaultCharmChance, 20)
+RULE_INT ( NPC, AIDefaultSlowChance, 70)
+RULE_INT ( NPC, AIDefaultDebuffChance, 70)
 RULE_CATEGORY_END()
 
 RULE_CATEGORY ( Aggro )

@@ -387,9 +387,9 @@ void Lua_NPC::ModifyNPCStat(const char *stat, const char *value) {
 	self->ModifyNPCStat(stat, value);
 }
 
-void Lua_NPC::AddAISpell(int priority, int spell_id, int type, int mana_cost, int recast_delay, int resist_adjust) {
+void Lua_NPC::AddAISpell(int priority, int spell_id, int type, int mana_cost, int recast_delay, int chance, int resist_adjust) {
 	Lua_Safe_Call_Void();
-	self->AddSpellToNPCList(priority, spell_id, type, mana_cost, recast_delay, resist_adjust);
+	self->AddSpellToNPCList(priority, spell_id, type, mana_cost, recast_delay, chance, resist_adjust);
 }
 
 void Lua_NPC::RemoveAISpell(int spell_id) {

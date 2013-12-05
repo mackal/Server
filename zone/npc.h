@@ -63,6 +63,7 @@ struct AISpells_Struct {
 	uint32	time_cancast;	// when we can cast this spell next
 	int32	recast_delay;
 	int16	priority;
+	int8	chance;			// -1 = use default for type
 	int16	resist_adjust;
 };
 
@@ -333,7 +334,7 @@ public:
 	void NPCSlotTexture(uint8 slot, uint16 texture);	// Sets new material values for slots
 
 	uint32 GetAdventureTemplate() const { return adventure_template_id; }
-	void AddSpellToNPCList(int16 iPriority, int16 iSpellID, uint16 iType, int16 iManaCost, int32 iRecastDelay, int16 iResistAdjust);
+	void AddSpellToNPCList(int16 iPriority, int16 iSpellID, uint16 iType, int16 iManaCost, int32 iRecastDelay, int8 iChance, int16 iResistAdjust);
 	void RemoveSpellFromNPCList(int16 spell_id);
 	Timer *GetRefaceTimer() const { return reface_timer; }
 	const uint32 GetAltCurrencyType() const { return NPCTypedata->alt_currency_type; }

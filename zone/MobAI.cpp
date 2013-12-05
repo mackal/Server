@@ -128,7 +128,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 						if (
 							!tar->IsRooted()
 							&& dist2 >= 900
-							&& MakeRandomInt(0, 99) < 50
+							&& MakeRandomInt(0, 99) < AIspells[i].chance
 							&& tar->DontRootMeBefore() < Timer::GetCurrentTime()
 							&& tar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0
 							) {
@@ -167,7 +167,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 					}
 
 					case SpellType_InCombatBuff: {
-						if(MakeRandomInt(0,100) < 50)
+						if(MakeRandomInt(0, 99) < AIspells[i].chance)
 						{
 							AIDoSpellCast(i, tar, mana_cost);
 							return true;
@@ -187,7 +187,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 					case SpellType_Debuff:
 					case SpellType_Nuke: {
 						if (
-							manaR >= 10 && MakeRandomInt(0, 99) < 70
+							manaR >= 10 && MakeRandomInt(0, 99) < AIspells[i].chance
 							&& tar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0
 							) {
 							if(!checked_los) {
@@ -201,7 +201,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 						break;
 					}
 					case SpellType_Dispel: {
-						if(MakeRandomInt(0, 100) < 15)
+						if(MakeRandomInt(0, 99) < AIspells[i].chance)
 						{
 							if(!checked_los) {
 								if(!CheckLosFN(tar))
@@ -217,7 +217,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 						break;
 					}
 					case SpellType_Mez: {
-						if(MakeRandomInt(0, 99) < 20)
+						if(MakeRandomInt(0, 99) < AIspells[i].chance)
 						{
 							Mob * mezTar = nullptr;
 							mezTar = entity_list.GetTargetForMez(this);
@@ -233,7 +233,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 
 					case SpellType_Charm:
 					{
-						if(!IsPet() && MakeRandomInt(0, 99) < 20)
+						if(!IsPet() && MakeRandomInt(0, 99) < AIspells[i].chance)
 						{
 							Mob * chrmTar = GetHateRandom();
 							if(chrmTar && chrmTar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0)
@@ -247,7 +247,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 
 					case SpellType_Pet: {
 						//keep mobs from recasting pets when they have them.
-						if (!IsPet() && !GetPetID() && MakeRandomInt(0, 99) < 25) {
+						if (!IsPet() && !GetPetID() && MakeRandomInt(0, 99) < AIspells[i].chance) {
 							AIDoSpellCast(i, tar, mana_cost);
 							return true;
 						}
@@ -255,7 +255,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 					}
 					case SpellType_Lifetap: {
 						if (GetHPRatio() <= 95
-							&& MakeRandomInt(0, 99) < 50
+							&& MakeRandomInt(0, 99) < AIspells[i].chance
 							&& tar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0
 							) {
 							if(!checked_los) {
@@ -271,7 +271,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 					case SpellType_Snare: {
 						if (
 							!tar->IsRooted()
-							&& MakeRandomInt(0, 99) < 50
+							&& MakeRandomInt(0, 99) < AIspells[i].chance
 							&& tar->DontSnareMeBefore() < Timer::GetCurrentTime()
 							&& tar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0
 							) {
@@ -289,7 +289,7 @@ bool NPC::AICastSpell(Mob* tar, uint8 iChance, uint16 iSpellTypes) {
 					}
 					case SpellType_DOT: {
 						if (
-							MakeRandomInt(0, 99) < 60
+							MakeRandomInt(0, 99) < AIspells[i].chance
 							&& tar->DontDotMeBefore() < Timer::GetCurrentTime()
 							&& tar->CanBuffStack(AIspells[i].spellid, GetLevel(), true) >= 0
 							) {
@@ -2338,7 +2338,7 @@ bool NPC::AI_AddNPCSpells(uint32 iDBSpellsID) {
 					AddSpellToNPCList(parentlist->entries[i].priority,
 						parentlist->entries[i].spellid, parentlist->entries[i].type,
 						parentlist->entries[i].manacost, parentlist->entries[i].recast_delay,
-						parentlist->entries[i].resist_adjust);
+						parentlist->entries[i].chance, parentlist->entries[i].resist_adjust);
 				}
 			}
 		}
@@ -2352,7 +2352,7 @@ bool NPC::AI_AddNPCSpells(uint32 iDBSpellsID) {
 			AddSpellToNPCList(spell_list->entries[i].priority,
 				spell_list->entries[i].spellid, spell_list->entries[i].type,
 				spell_list->entries[i].manacost, spell_list->entries[i].recast_delay,
-				spell_list->entries[i].resist_adjust);
+				spell_list->entries[i].chance, spell_list->entries[i].resist_adjust);
 		}
 	}
 	std::sort(AIspells.begin(), AIspells.end(), Compare_AI_Spells);
@@ -2382,7 +2382,7 @@ bool Compare_AI_Spells(AISpells_Struct i, AISpells_Struct j)
 
 // adds a spell to the list, taking into account priority and resorting list as needed.
 void NPC::AddSpellToNPCList(int16 iPriority, int16 iSpellID, uint16 iType,
-							int16 iManaCost, int32 iRecastDelay, int16 iResistAdjust)
+		int16 iManaCost, int32 iRecastDelay, int8 iChance, int16 iResistAdjust)
 {
 
 	if(!IsValidSpell(iSpellID))
@@ -2398,6 +2398,52 @@ void NPC::AddSpellToNPCList(int16 iPriority, int16 iSpellID, uint16 iType,
 	t.recast_delay = iRecastDelay;
 	t.time_cancast = 0;
 	t.resist_adjust = iResistAdjust;
+
+	if (iChance > -1) {
+		t.chance = iChance > 100 ? 100 : iChance;
+	} else {
+		switch (t.type) {
+		case SpellType_Nuke:
+			t.chance = RuleI(NPC, AIDefaultNukeChance);
+			break;
+		case SpellType_Root:
+			t.chance = RuleI(NPC, AIDefaultRootChance);
+			break;
+		case SpellType_Pet:
+			t.chance = RuleI(NPC, AIDefaultPetChance);
+			break;
+		case SpellType_Lifetap:
+			t.chance = RuleI(NPC, AIDefaultLifetapChance);
+			break;
+		case SpellType_Snare:
+			t.chance = RuleI(NPC, AIDefaultSnareChance);
+			break;
+		case SpellType_DOT:
+			t.chance = RuleI(NPC, AIDefaultDOTChance);
+			break;
+		case SpellType_Dispel:
+			t.chance = RuleI(NPC, AIDefaultDispelChance);
+			break;
+		case SpellType_InCombatBuff:
+			t.chance = RuleI(NPC, AIDefaultInCombatBuffChance);
+			break;
+		case SpellType_Mez:
+			t.chance = RuleI(NPC, AIDefaultMezChance);
+			break;
+		case SpellType_Charm:
+			t.chance = RuleI(NPC, AIDefaultCharmChance);
+			break;
+		case SpellType_Slow:
+			t.chance = RuleI(NPC, AIDefaultSlowChance);
+			break;
+		case SpellType_Debuff:
+			t.chance = RuleI(NPC, AIDefaultDebuffChance);
+			break;
+		default:
+			t.chance = 0;
+			break;
+		}
+	}
 
 	AIspells.push_back(t);
 }
@@ -2422,8 +2468,9 @@ void NPC::AISpellsList(Client *c)
 		return;
 
 	for (std::vector<AISpells_Struct>::iterator it = AIspells.begin(); it != AIspells.end(); ++it)
-		c->Message(0, "%s (%d): Type %d, Priority %d",
-				spells[it->spellid].name, it->spellid, it->type, it->priority);
+		c->Message(0, "%s (%d): Type %d, Manacost %d, Recast Delay %d, Chance %d, Priority %d, Resist Adjust %d",
+				spells[it->spellid].name, it->spellid, it->type, it->manacost,
+				it->recast_delay, it->chance, it->priority, it->resist_adjust);
 
 	return;
 }
@@ -2460,7 +2507,7 @@ DBnpcspells_Struct* ZoneDatabase::GetNPCSpells(uint32 iDBSpellsID) {
 				int16 tmpattack_proc = atoi(row[2]);
 				uint8 tmpproc_chance = atoi(row[3]);
 				mysql_free_result(result);
-				if (RunQuery(query, MakeAnyLenString(&query, "SELECT spellid, type, minlevel, maxlevel, manacost, recast_delay, priority, resist_adjust from npc_spells_entries where npc_spells_id=%d ORDER BY minlevel", iDBSpellsID), errbuf, &result)) {
+				if (RunQuery(query, MakeAnyLenString(&query, "SELECT spellid, type, minlevel, maxlevel, manacost, recast_delay, priority, chance, resist_adjust from npc_spells_entries where npc_spells_id=%d ORDER BY minlevel", iDBSpellsID), errbuf, &result)) {
 					safe_delete_array(query);
 					uint32 tmpSize = sizeof(DBnpcspells_Struct) + (sizeof(DBnpcspells_entries_Struct) * mysql_num_rows(result));
 					npc_spells_cache[iDBSpellsID] = (DBnpcspells_Struct*) new uchar[tmpSize];
@@ -2479,9 +2526,10 @@ DBnpcspells_Struct* ZoneDatabase::GetNPCSpells(uint32 iDBSpellsID) {
 						npc_spells_cache[iDBSpellsID]->entries[j].manacost = atoi(row[4]);
 						npc_spells_cache[iDBSpellsID]->entries[j].recast_delay = atoi(row[5]);
 						npc_spells_cache[iDBSpellsID]->entries[j].priority = atoi(row[6]);
-						if(row[7])
+						npc_spells_cache[iDBSpellsID]->entries[j].chance = atoi(row[7]);
+						if(row[8])
 						{
-							npc_spells_cache[iDBSpellsID]->entries[j].resist_adjust = atoi(row[7]);
+							npc_spells_cache[iDBSpellsID]->entries[j].resist_adjust = atoi(row[8]);
 						}
 						else
 						{
