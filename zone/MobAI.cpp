@@ -1877,11 +1877,13 @@ void NPC::AI_Event_SpellCastFinished(bool iCastSucceeded, uint8 slot) {
 					}
 				}
 			}
+			if (recovery_time == 0)
+				recovery_time = RandomTimer(2250, 6000);
 			if (recovery_time < AIautocastspell_timer->GetSetAtTrigger())
 				recovery_time = AIautocastspell_timer->GetSetAtTrigger();
 			AIautocastspell_timer->Start(recovery_time, false);
 		} else {
-			AIautocastspell_timer->Start(800, false);
+			AIautocastspell_timer->Start(RandomTimer(500, 6000), false);
 		}
 		casting_spell_AIindex = AIspells.size();
 	}
@@ -1901,7 +1903,7 @@ bool NPC::AI_EngagedCastCheck() {
 				//nobody to heal, try some detrimental spells.
 				if(!AICastSpell(GetTarget(), 20, SpellType_Nuke | SpellType_Lifetap | SpellType_DOT | SpellType_Dispel | SpellType_Mez | SpellType_Slow | SpellType_Debuff | SpellType_Charm)) {
 					//no spell to cast, try again soon.
-					AIautocastspell_timer->Start(RandomTimer(500, 1000), false);
+					AIautocastspell_timer->Start(RandomTimer(500, 6000), false);
 				}
 			}
 		}
