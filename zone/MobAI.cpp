@@ -1903,7 +1903,8 @@ bool NPC::AI_EngagedCastCheck() {
 				//nobody to heal, try some detrimental spells.
 				if (!AICastSpell(GetTarget(), 20, SpellType_Nuke | SpellType_Lifetap | SpellType_DOT | SpellType_Dispel | SpellType_Mez | SpellType_Slow | SpellType_Debuff | SpellType_Charm)) {
 					// didn't cast detrimental spells on our target, try a random person on our hate list now with a low chance
-					if (!AICastSpell(GetHateRandom(), 10, SpellType_Nuke | SpellType_Lifetap | SpellType_DOT | SpellType_Dispel | SpellType_Slow | SpellType_Debuff | SpellType_Root)) {
+					// Also, don't do this if you're a pet
+					if (!IsPet() && !AICastSpell(GetHateRandom(), 10, SpellType_Nuke | SpellType_Lifetap | SpellType_DOT | SpellType_Dispel | SpellType_Slow | SpellType_Debuff | SpellType_Root)) {
 						//no spell to cast, try again soon.
 						AIautocastspell_timer->Start(RandomTimer(500, 6000), false);
 					}
