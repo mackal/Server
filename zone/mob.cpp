@@ -2395,29 +2395,29 @@ bool Mob::HateSummon() {
 }
 
 void Mob::FaceTarget(Mob* MobToFace) {
-	Mob* facemob = MobToFace;
-	if(!facemob) {
-		if(!GetTarget()) {
+	Mob* facemob = IsCasting() ? entity_list.GetMob(casting_spell_targetid) : MobToFace;
+
+	if (!facemob) {
+		if (!GetTarget()) {
 			return;
-		}
-		else {
+		} else {
 			facemob = GetTarget();
 		}
 	}
 
-	float oldheading = GetHeading();
-	float newheading = CalculateHeadingToTarget(facemob->GetX(), facemob->GetY());
-	if(oldheading != newheading) {
-		SetHeading(newheading);
-		if(moving)
-			SendPosUpdate();
-		else
-		{
-			SendPosition();
+	if (facemob != this) {
+		float oldheading = GetHeading();
+		float newheading = CalculateHeadingToTarget(facemob->GetX(), facemob->GetY());
+		if (oldheading != newheading) {
+			SetHeading(newheading);
+			if (moving)
+				SendPosUpdate();
+			else
+				SendPosition();
 		}
 	}
 
-	if(IsNPC() && !IsEngaged()) {
+	if (IsNPC() && !IsEngaged()) {
 		CastToNPC()->GetRefaceTimer()->Start(15000);
 		CastToNPC()->GetRefaceTimer()->Enable();
 	}
