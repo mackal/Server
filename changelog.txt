@@ -1,6 +1,7 @@
 EQEMu Changelog (Started on Sept 24, 2003 15:50)
 -------------------------------------------------------
 == 12/14/2013 ==
+demonstar55: Blocked buffs shouldn't fail, they should just not be applied.
 JJ: Changed enable/disable recipe to confirm change made.
 
 == 12/13/2013 ==
@@ -10,7 +11,6 @@ Kayen: Implemented SE_SpellOnAmtDmgTaken (Effect is triggered when X amount of d
 Kayen: Fix for various spell triggers/procs to now properly use their resist modifier.
 Kayen: Fix to mob->ModSkillDmgTaken(skill_num, value), setting value to -1 will now properly effect all skills.
 
-=======
 == 12/11/2013 ==
 demonstar55: Fixed issue with crippling blow from berserker frenzy not actually doing anything
 demonstar55: Fix haste caps
