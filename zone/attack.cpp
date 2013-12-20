@@ -377,7 +377,7 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 	//////////////////////////////////////////////////////////
 	// make enrage same as riposte
 	/////////////////////////////////////////////////////////
-	if (IsEnraged() && !other->BehindMob(this, other->GetX(), other->GetY())) {
+	if (IsEnraged() && other->InFrontMob(this, other->GetX(), other->GetY())) {
 		damage = -3;
 		mlog(COMBAT__DAMAGE, "I am enraged, riposting frontal attack.");
 	}
@@ -386,7 +386,7 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 	// riposte
 	/////////////////////////////////////////////////////////
 	float riposte_chance = 0.0f;
-	if (CanRiposte && damage > 0 && CanThisClassRiposte() && !other->BehindMob(this, other->GetX(), other->GetY()))
+	if (CanRiposte && damage > 0 && CanThisClassRiposte() && other->InFrontMob(this, other->GetX(), other->GetY()))
 	{
 		riposte_chance = (100.0f + (float)defender->aabonuses.RiposteChance + (float)defender->spellbonuses.RiposteChance + (float)defender->itembonuses.RiposteChance) / 100.0f;
 		skill = GetSkill(SkillRiposte);
@@ -427,7 +427,7 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 	}
 
 	float block_chance = 0.0f;
-	if (damage > 0 && CanThisClassBlock() && (!other->BehindMob(this, other->GetX(), other->GetY()) || bBlockFromRear)) {
+	if (damage > 0 && CanThisClassBlock() && (other->InFrontMob(this, other->GetX(), other->GetY()) || bBlockFromRear)) {
 		block_chance = (100.0f + (float)spellbonuses.IncreaseBlockChance + (float)itembonuses.IncreaseBlockChance) / 100.0f;
 		skill = CastToClient()->GetSkill(SkillBlock);
 		if (IsClient()) {
@@ -444,23 +444,16 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 		RollTable[1] = RollTable[0];
 	}
 
-	if(damage > 0 && (aabonuses.ShieldBlock || spellbonuses.ShieldBlock || itembonuses.ShieldBlock)
-		&& (!other->BehindMob(this, other->GetX(), other->GetY()) || bShieldBlockFromRear)) {
-		bool equiped = CastToClient()->m_inv.GetItem(14);
-		if(equiped) {
-			uint8 shield = CastToClient()->m_inv.GetItem(14)->GetItem()->ItemType;
-			float bonusShieldBlock = 0.0f;
-			if(shield == ItemTypeShield) {
+	if(damage > 0 && HasShieldEquiped()	&& (aabonuses.ShieldBlock || spellbonuses.ShieldBlock || itembonuses.ShieldBlock)
+		&& (other->InFrontMob(this, other->GetX(), other->GetY()) || bShieldBlockFromRear)) {
 
-				//Live AA - Shield Block
-				bonusShieldBlock = aabonuses.ShieldBlock + spellbonuses.ShieldBlock + itembonuses.ShieldBlock;
-				RollTable[1] += bonusShieldBlock;
-			}
-		}
+		float bonusShieldBlock = 0.0f;
+		bonusShieldBlock = aabonuses.ShieldBlock + spellbonuses.ShieldBlock + itembonuses.ShieldBlock;
+		RollTable[1] += bonusShieldBlock;
 	}
 
 	if(damage > 0 && (aabonuses.TwoHandBluntBlock || spellbonuses.TwoHandBluntBlock || itembonuses.TwoHandBluntBlock)
-		&& (!other->BehindMob(this, other->GetX(), other->GetY()) || bShieldBlockFromRear)) {
+		&& (other->InFrontMob(this, other->GetX(), other->GetY()) || bShieldBlockFromRear)) {
 		bool equiped2 = CastToClient()->m_inv.GetItem(13);
 		if(equiped2) {
 			uint8 TwoHandBlunt = CastToClient()->m_inv.GetItem(13)->GetItem()->ItemType;
@@ -477,7 +470,7 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 	// parry
 	//////////////////////////////////////////////////////
 	float parry_chance = 0.0f;
-	if (damage > 0 && CanThisClassParry() && !other->BehindMob(this, other->GetX(), other->GetY()))
+	if (damage > 0 && CanThisClassParry() && other->InFrontMob(this, other->GetX(), other->GetY()))
 	{
 		parry_chance = (100.0f + (float)defender->spellbonuses.ParryChance + (float)defender->itembonuses.ParryChance) / 100.0f;
 		skill = CastToClient()->GetSkill(SkillParry);
@@ -500,7 +493,7 @@ bool Mob::AvoidDamage(Mob* other, int32 &damage, bool CanRiposte)
 	// dodge
 	////////////////////////////////////////////////////////
 	float dodge_chance = 0.0f;
-	if (damage > 0 && CanThisClassDodge() && !other->BehindMob(this, other->GetX(), other->GetY()))
+	if (damage > 0 && CanThisClassDodge() && other->InFrontMob(this, other->GetX(), other->GetY()))
 	{
 		dodge_chance = (100.0f + (float)defender->spellbonuses.DodgeChance + (float)defender->itembonuses.DodgeChance) / 100.0f;
 		skill = CastToClient()->GetSkill(SkillDodge);
@@ -2432,6 +2425,12 @@ void Mob::AddToHateList(Mob* other, int32 hate, int32 damage, bool iYellForHelp,
 	if(other){
 		AddRampage(other);
 		int hatemod = 100 + other->spellbonuses.hatemod + other->itembonuses.hatemod + other->aabonuses.hatemod;
+		
+		int16 shieldhatemod = other->spellbonuses.ShieldEquipHateMod + other->itembonuses.ShieldEquipHateMod + other->aabonuses.ShieldEquipHateMod;
+
+		if (shieldhatemod && other->HasShieldEquiped())
+			hatemod += shieldhatemod;
+		
 		if(hatemod < 1)
 			hatemod = 1;
 		hate = ((hate * (hatemod))/100);
@@ -2446,6 +2445,9 @@ void Mob::AddToHateList(Mob* other, int32 hate, int32 damage, bool iYellForHelp,
 			return;
 	}
 
+	if (other->IsNPC() && (other->IsPet() || other->CastToNPC()->GetSwarmOwner() > 0))
+		TryTriggerOnValueAmount(false, false, false, true);
+	
 	if(IsClient() && !IsAIControlled())
 		return;
 
@@ -3223,6 +3225,7 @@ int32 Mob::ReduceDamage(int32 damage)
 		if(GetMana() > damage * spellbonuses.ManaAbsorbPercentDamage[0] / 100) {
 			damage -= (damage * spellbonuses.ManaAbsorbPercentDamage[0] / 100);
 			SetMana(GetMana() - damage);
+			TryTriggerOnValueAmount(false, true);
 			CheckHitsRemaining(slot);
 		}
 	}
@@ -3298,6 +3301,7 @@ int32 Mob::AffectMagicalDamage(int32 damage, uint16 spell_id, const bool iBuffTi
 			if(GetMana() > damage * spellbonuses.ManaAbsorbPercentDamage[0] / 100) {
 				damage -= (damage * spellbonuses.ManaAbsorbPercentDamage[0] / 100);
 				SetMana(GetMana() - damage);
+				TryTriggerOnValueAmount(false, true);
 				CheckHitsRemaining(slot);
 			}
 		}
@@ -3369,6 +3373,16 @@ bool Client::CheckDoubleAttack(bool tripleAttack) {
 	}
 
 	if((MakeRandomFloat(0, 1) < chance))
+		return true;
+
+	return false;
+}
+
+bool Client::CheckArcheryDoubleAttack() {
+		
+	int16 chance = spellbonuses.ArcheryDoubleAttack + itembonuses.ArcheryDoubleAttack + aabonuses.ArcheryDoubleAttack;
+
+	if(chance && (MakeRandomInt(0, 100) < chance))
 		return true;
 
 	return false;
@@ -3478,7 +3492,7 @@ void Mob::CommonDamage(Mob* attacker, int32 &damage, const uint16 spell_id, cons
 		attacker->SendAppearancePacket(AT_Sneak, 0);
 	}
 		//final damage has been determined.
-		
+
 		ReduceAllDamage(damage);
 		SetHP(GetHP() - damage);
 
@@ -3500,6 +3514,8 @@ void Mob::CommonDamage(Mob* attacker, int32 &damage, const uint16 spell_id, cons
 			if(GetHPRatio() < 16)
 				TryDeathSave();
 		}
+
+		TryTriggerOnValueAmount(true);
 
 		//fade mez if we are mezzed
 		if (IsMezzed()) {

@@ -106,7 +106,13 @@ public:
 	//Attack
 	virtual void RogueBackstab(Mob* other, bool min_damage = false, int ReuseTime = 10);
 	virtual void RogueAssassinate(Mob* other); // solar
-	bool BehindMob(Mob* other = 0, float playerx = 0.0f, float playery = 0.0f) const;
+	float MobAngle(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const;
+	// greater than 90 is behind
+	inline bool BehindMob(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const
+		{ return (!other || other == this) ? true : MobAngle(other, ourx, oury) > 90.0f; }
+	// less than 56 is in front, greater than 56 is usually where the client generates the messages
+	inline bool InFrontMob(Mob *other = 0, float ourx = 0.0f, float oury = 0.0f) const
+		{ return (!other || other == this) ? true : MobAngle(other, ourx, oury) < 56.0f; }
 	virtual void RangedAttack(Mob* other) { }
 	virtual void ThrowingAttack(Mob* other) { }
 	uint16 GetThrownDamage(int16 wDmg, int32& TotalDmg, int& minDmg);
@@ -259,6 +265,8 @@ public:
 	void TempName(const char *newname = nullptr);
 	void SetTargetable(bool on);
 	bool IsTargetable() const { return m_targetable; }
+	bool HasShieldEquiped() const { return has_shieldequiped; }
+	inline void ShieldEquiped(bool val) { has_shieldequiped = val; }
 	virtual uint16 GetSkill(SkillUseTypes skill_num) const { return 0; }
 	virtual uint32 GetEquipment(uint8 material_slot) const { return(0); }
 	virtual int32 GetEquipmentMaterial(uint8 material_slot) const;
@@ -531,6 +539,7 @@ public:
 	void TriggerOnCast(uint32 focus_spell, uint32 spell_id, bool aa_trigger);
 	void TrySpellTrigger(Mob *target, uint32 spell_id);
 	void TryApplyEffect(Mob *target, uint32 spell_id);
+	void TryTriggerOnValueAmount(bool IsHP = false, bool IsMana = false, bool IsEndur = false, bool IsPet = false);
 	void TryTwincast(Mob *caster, Mob *target, uint32 spell_id);
 	void TrySympatheticProc(Mob *target, uint32 spell_id);
 	bool TryFadeEffect(int slot);
@@ -1044,6 +1053,7 @@ protected:
 	uint16 viral_spells[MAX_SPELL_TRIGGER*2]; // Stores the spell ids of the viruses on target and caster ids
 	int16 rooted_mod; //Modifier to root break chance, defined when root is cast on a target.
 	bool offhand;
+	bool has_shieldequiped;
 
 	// Bind wound
 	Timer bindwound_timer;
