@@ -1136,6 +1136,7 @@ public:
 	const char* GetRacePlural(Client* client);
 	const char* GetClassPlural(Client* client);
 	void SendWebLink(const char* website);
+	void SendMarqueeMessage(uint32 type, uint32 priority, uint32 fade_in, uint32 fade_out, uint32 duration, std::string msg);
 
 	void DuplicateLoreMessage(uint32 ItemID);
 	void GarbleMessage(char *, uint8);
@@ -1157,6 +1158,7 @@ public:
 	void SetAccountFlag(std::string flag, std::string val);
 	std::string GetAccountFlag(std::string flag);    float GetDamageMultiplier(SkillUseTypes);
 	void Consume(const Item_Struct *item, uint8 type, int16 slot, bool auto_consume);
+	void PlayMP3(const char* fname);
 	int mod_client_damage(int damage, SkillUseTypes skillinuse, int hand, const ItemInst* weapon, Mob* other);
 	bool mod_client_message(char* message, uint8 chan_num);
 	bool mod_can_increase_skill(SkillUseTypes skillid, Mob* against_who);

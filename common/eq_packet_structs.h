@@ -3483,7 +3483,7 @@ struct MobRename_Struct {
 };
 
 struct PlayMP3_Struct {
-	char filename[128];
+	char filename[0];
 };
 
 //this is for custom title display in the skill window
@@ -5077,15 +5077,15 @@ struct ServerLootItem_Struct {
 //"Got a broadcast message for ... %s ...\n"
 struct ClientMarqueeMessage_Struct {
 	uint32 type;
-	uint32 unk04; // no idea, have seen 10 mostly, didn't notice a change when altering it
+	uint32 unk04; // no idea, didn't notice a change when altering it.
+	//According to asm the following are hard coded values: 2, 4, 5, 6, 7, 10, 12, 13, 14, 15, 16, 18, 20
+	//There is also a non-hardcoded fall through but to be honest i don't know enough about what it does yet
 	uint32 priority; //needs a better name but it does:
-	//opacity = priority / 255
-	//# of ending blinks = (int)((priority - 1) / 255)
+	//opacity = (priority / 255) - floor(priority / 255)
+	//# of fade in/out blinks = (int)((priority - 1) / 255)
 	//so 510 would have 100% opacity and 1 extra blink at end
-	uint32 unk12; //no idea, seen 0, 500, 1000.  
-	uint32 unk16; //no idea, seen 500, 1000
-	//Visually I couldn't tell a difference from these previous two, 
-	//but there's probably a reason for them that's more subtle than what i was looking for
+	uint32 fade_in_time; //The fade in time, in ms
+	uint32 fade_out_time; //The fade out time, in ms
 	uint32 duration; //in ms
 	char msg[1]; //message plus null terminator
 	
