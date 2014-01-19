@@ -587,7 +587,7 @@ public:
 	int32	GetCharacterFactionLevel(int32 faction_id);
 	int32	GetModCharacterFactionLevel(int32 faction_id);
 	bool	HatedByClass(uint32 p_race, uint32 p_class, uint32 p_deity, int32 pFaction);
-	char* BuildFactionMessage(int32 tmpvalue, int32 faction_id, int32 totalvalue, uint8 temp);
+	void	SendFactionMessage(int32 tmpvalue, int32 faction_id, int32 totalvalue, uint8 temp);
 
 	void	SetFactionLevel(uint32 char_id, uint32 npc_id, uint8 char_class, uint8 char_race, uint8 char_deity);
 	void	SetFactionLevel2(uint32 char_id, int32 faction_id, uint8 char_class, uint8 char_race, uint8 char_deity, int32 value, uint8 temp);
@@ -819,7 +819,7 @@ public:
 	void	LinkDead();
 	void	Insight(uint32 t_id);
 	bool	CheckDoubleAttack(bool tripleAttack = false);
-	bool	CheckArcheryDoubleAttack();
+	bool	CheckDoubleRangedAttack();
 
 	//remove charges/multiple objects from inventory:
 	//bool	DecreaseByType(uint32 type, uint8 amt);
@@ -830,7 +830,7 @@ public:
 	void	RemoveDuplicateLore(bool client_update = true);
 	void	MoveSlotNotAllowed(bool client_update = true);
 	virtual void	RangedAttack(Mob* other, bool CanDoubleAttack = false);
-	virtual void	ThrowingAttack(Mob* other);
+	virtual void	ThrowingAttack(Mob* other,  bool CanDoubleAttack = false);
 	void	DoClassAttacks(Mob *ca_target, uint16 skill = -1, bool IsRiposte=false);
 
 	void	SetZoneFlag(uint32 zone_id);

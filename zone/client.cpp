@@ -581,6 +581,7 @@ bool Client::Save(uint8 iCommitNow) {
 		m_petinfo.Mana = pet->GetMana();
 		pet->GetPetState(m_petinfo.Buffs, m_petinfo.Items, m_petinfo.Name);
 		m_petinfo.petpower = pet->GetPetPower();
+		m_petinfo.size = pet->GetSize();
 	} else {
 		memset(&m_petinfo, 0, sizeof(struct PetInfo));
 	}
@@ -1021,7 +1022,7 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 			if(command_dispatch(this, message) == -2) {
 				if(parse->PlayerHasQuestSub(EVENT_COMMAND)) {
 					int i = parse->EventPlayer(EVENT_COMMAND, this, message, 0);
-					if(i != 0) {
+					if(i == 0) {
 						Message(13, "Command '%s' not recognized.", message);
 					}
 				} else {
@@ -1080,6 +1081,10 @@ void Client::ChannelMessageReceived(uint8 chan_num, uint8 language, uint8 lang_s
 	case 22:
 	{
 		// Emotes for Underfoot and later.
+		// crash protection -- cheater
+		if (strlen(message) > 512)
+			message[512] = '\0';
+
 		EQApplicationPacket* outapp = new EQApplicationPacket(OP_Emote, 4 + strlen(message) + strlen(GetName()) + 2);
 		Emote_Struct* es = (Emote_Struct*)outapp->pBuffer;
 		char *Buffer = (char *)es;
@@ -4743,7 +4748,7 @@ void Client::ShowSkillsWindow()
 		Skills[SkillName[i]] = (SkillUseTypes)i;
 
 	// print out all available skills
-	for(it = Skills.begin(); it != Skills.end(); it++) {
+	for(it = Skills.begin(); it != Skills.end(); ++it) {
 		if(GetSkill(it->second) > 0 || MaxSkill(it->second) > 0) {
 			WindowText += it->first;
 			// line up the values
@@ -5137,7 +5142,7 @@ void Client::SendRewards()
 				{
 					break;
 				}
-				iter++;
+				++iter;
 			}
 
 			if(iter != zone->VeteranRewards.end())
@@ -5227,7 +5232,7 @@ bool Client::TryReward(uint32 claim_id)
 		{
 			break;
 		}
-		iter++;
+		++iter;
 	}
 
 	if(iter == zone->VeteranRewards.end())
@@ -5433,7 +5438,7 @@ void Client::SuspendMinion()
 		if(m_suspendedminion.SpellID > 0)
 		{
 			MakePoweredPet(m_suspendedminion.SpellID, spells[m_suspendedminion.SpellID].teleport_zone,
-				m_suspendedminion.petpower, m_suspendedminion.Name);
+				m_suspendedminion.petpower, m_suspendedminion.Name, m_suspendedminion.size);
 
 			CurrentPet = GetPet()->CastToNPC();
 
@@ -5493,6 +5498,7 @@ void Client::SuspendMinion()
 
 				m_suspendedminion.Mana = CurrentPet->GetMana();
 				m_suspendedminion.petpower = CurrentPet->GetPetPower();
+				m_suspendedminion.size = CurrentPet->GetSize();
 
 				if(AALevel >= 2)
 					CurrentPet->GetPetState(m_suspendedminion.Buffs, m_suspendedminion.Items, m_suspendedminion.Name);
@@ -6600,7 +6606,7 @@ void Client::SendStatsWindow(Client* client, bool use_window)
 
 	for(std::map <uint32, int32>::iterator iter = item_faction_bonuses.begin();
 		iter != item_faction_bonuses.end();
-		iter++)
+		++iter)
 	{
 		memset(&faction_buf, 0, sizeof(faction_buf));
 
@@ -6722,7 +6728,7 @@ void Client::SendAltCurrencies() {
 				altc->entries[i].stack_size = 1000;
 			}
 			i++;
-			iter++;
+			++iter;
 		}
 
 		FastQueuePacket(&outapp);
@@ -6770,7 +6776,7 @@ void Client::SendAlternateCurrencyValues()
 	std::list<AltCurrencyDefinition_Struct>::iterator iter = zone->AlternateCurrencies.begin();
 	while(iter != zone->AlternateCurrencies.end()) {
 		SendAlternateCurrencyValue((*iter).id, false);
-		iter++;
+		++iter;
 	}
 }
 
@@ -7209,7 +7215,7 @@ void Client::SendMercPersonalInfo()
 						mdus->MercData[i].Stances[stanceindex].StanceIndex = stanceindex;
 						mdus->MercData[i].Stances[stanceindex].Stance = (iter->StanceID);
 						stanceindex++;
-						iter++;
+						++iter;
 					}
 				}
 
@@ -7275,7 +7281,7 @@ void Client::SendMercPersonalInfo()
 						mml->Mercs[i].Stances[stanceindex].StanceIndex = stanceindex;
 						mml->Mercs[i].Stances[stanceindex].Stance = (iter->StanceID);
 						stanceindex++;
-						iter++;
+						++iter;
 					}
 				}
 				FastQueuePacket(&outapp);
@@ -7510,10 +7516,7 @@ void Client::SetFactionLevel(uint32 char_id, uint32 npc_id, uint8 char_class, ui
 				if(tmpValue <= MIN_FACTION)
 					tmpValue = MIN_FACTION;
 
-				char* msg = BuildFactionMessage(npc_value[i],faction_id[i],tmpValue,temp[i]);
-				if (msg != 0)
-					Message(0, msg);
-				safe_delete_array(msg);
+				SendFactionMessage(npc_value[i], faction_id[i], tmpValue, temp[i]);
 			}
 		}
 	}
@@ -7530,11 +7533,7 @@ void Client::SetFactionLevel2(uint32 char_id, int32 faction_id, uint8 char_class
 		if(!(database.SetCharacterFactionLevel(char_id, faction_id, current_value, temp, factionvalues)))
 			return;
 
-		char* msg = BuildFactionMessage(value, faction_id, current_value, temp);
-		if (msg != 0)
-			Message(0, msg);
-		safe_delete(msg);
-
+		SendFactionMessage(value, faction_id, current_value, temp);
 	}
 	return;
 }
@@ -7588,52 +7587,30 @@ bool Client::HatedByClass(uint32 p_race, uint32 p_class, uint32 p_deity, int32 p
 }
 
 //o--------------------------------------------------------------
-//| Name: BuildFactionMessage; rembrant, Dec. 16, 2001
+//| Name: SendFactionMessage
 //o--------------------------------------------------------------
-//| Purpose: duh?
+//| Purpose: Send faction change message to client
 //o--------------------------------------------------------------
-char* Client::BuildFactionMessage(int32 tmpvalue, int32 faction_id, int32 totalvalue, uint8 temp)
+void Client::SendFactionMessage(int32 tmpvalue, int32 faction_id, int32 totalvalue, uint8 temp)
 {
-/*
-
-This should be replaced to send string-ID based messages using:
-#define FACTION_WORST 469 //Your faction standing with %1 could not possibly get any worse.
-#define FACTION_WORSE 470 //Your faction standing with %1 got worse.
-#define FACTION_BEST 471 //Your faction standing with %1 could not possibly get any better.
-#define FACTION_BETTER 472 //Your faction standing with %1 got better.
-
-some day.
-
-*/
-	//tmpvalue is the change as best I can tell.
-	char *faction_message = 0;
-
 	char name[50];
 
-	if(database.GetFactionName(faction_id, name, sizeof(name)) == false) {
+	// default to Faction# if we couldn't get the name from the ID
+	if (database.GetFactionName(faction_id, name, sizeof(name)) == false)
 		snprintf(name, sizeof(name),"Faction%i",faction_id);
-	}
 
-	if(tmpvalue == 0 || temp == 1 || temp == 2) {
-		return 0;
-	}
-	else if (totalvalue >= MAX_FACTION) {
-		MakeAnyLenString(&faction_message, "Your faction standing with %s could not possibly get any better!", name);
-		return faction_message;
-	}
-	else if(tmpvalue > 0 && totalvalue < MAX_FACTION) {
-		MakeAnyLenString(&faction_message, "Your faction standing with %s has gotten better!", name);
-		return faction_message;
-	}
-	else if(tmpvalue < 0 && totalvalue > MIN_FACTION) {
-		MakeAnyLenString(&faction_message, "Your faction standing with %s has gotten worse!", name);
-		return faction_message;
-	}
-	else if(totalvalue <= MIN_FACTION) {
-		MakeAnyLenString(&faction_message, "Your faction standing with %s could not possibly get any worse!", name);
-		return faction_message;
-	}
-	return 0;
+	if (tmpvalue == 0 || temp == 1 || temp == 2)
+		return;
+	else if (totalvalue >= MAX_FACTION)
+		Message_StringID(0, FACTION_BEST, name);
+	else if (tmpvalue > 0 && totalvalue < MAX_FACTION)
+		Message_StringID(0, FACTION_BETTER, name);
+	else if (tmpvalue < 0 && totalvalue > MIN_FACTION)
+		Message_StringID(0, FACTION_WORSE, name);
+	else if (totalvalue <= MIN_FACTION)
+		Message_StringID(0, FACTION_WORST, name);
+
+	return;
 }
 
 void Client::LoadAccountFlags()
@@ -7921,7 +7898,7 @@ bool Client::RemoveRespawnOption(std::string option_name)
 		opt = &(*itr);
 		if (opt->name.compare(option_name) == 0)
 		{
-			respawn_options.erase(itr); 
+			itr = respawn_options.erase(itr);
 			had = true;
 			//could be more with the same name, so keep going...
 		}

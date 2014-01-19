@@ -2215,7 +2215,7 @@ void Client::Handle_OP_AdventureMerchantRequest(const EQApplicationPacket *app)
 	const Item_Struct *item = 0;
 	std::list<MerchantList> merlist = zone->merchanttable[merchantid];
 	std::list<MerchantList>::const_iterator itr;
-	for(itr = merlist.begin();itr != merlist.end() && count<255;itr++){
+	for(itr = merlist.begin();itr != merlist.end() && count<255;++itr){
 		const MerchantList &ml = *itr;
 		if(GetLevel() < ml.level_required) {
 			continue;
@@ -2311,7 +2311,7 @@ void Client::Handle_OP_AdventureMerchantPurchase(const EQApplicationPacket *app)
 	std::list<MerchantList> merlist = zone->merchanttable[merchantid];
 	std::list<MerchantList>::const_iterator itr;
 
-	for(itr = merlist.begin();itr != merlist.end();itr++){
+	for(itr = merlist.begin();itr != merlist.end();++itr){
 		MerchantList ml = *itr;
 		if(GetLevel() < ml.level_required) {
 			continue;
@@ -4480,7 +4480,7 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 		return;
 	}
 	if (IsAIControlled()) {
-		this->Message_StringID(13,NOT_IN_CONTROL);
+		this->Message_StringID(13, NOT_IN_CONTROL);
 		//Message(13, "You cant cast right now, you arent in control of yourself!");
 		return;
 	}
@@ -4488,23 +4488,23 @@ void Client::Handle_OP_CastSpell(const EQApplicationPacket *app)
 	CastSpell_Struct* castspell = (CastSpell_Struct*)app->pBuffer;
 
 #ifdef _EQDEBUG
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[0], castspell->cs_unknown[0]);
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[1], castspell->cs_unknown[1]);
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[2], castspell->cs_unknown[2]);
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[3], castspell->cs_unknown[3]);
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: 32 %p %u", &castspell->cs_unknown, *(uint32*) castspell->cs_unknown );
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: 32 %p %i", &castspell->cs_unknown, *(uint32*) castspell->cs_unknown );
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: 16 %p %u %u", &castspell->cs_unknown, *(uint16*) castspell->cs_unknown, *(uint16*) castspell->cs_unknown+sizeof(uint16) );
-		LogFile->write(EQEMuLog::Debug, "cs_unknown2: 16 %p %i %i", &castspell->cs_unknown, *(uint16*) castspell->cs_unknown, *(uint16*) castspell->cs_unknown+sizeof(uint16) );
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[0], castspell->cs_unknown[0]);
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[1], castspell->cs_unknown[1]);
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[2], castspell->cs_unknown[2]);
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: %u %i", (uint8)castspell->cs_unknown[3], castspell->cs_unknown[3]);
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: 32 %p %u", &castspell->cs_unknown, *(uint32*) castspell->cs_unknown );
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: 32 %p %i", &castspell->cs_unknown, *(uint32*) castspell->cs_unknown );
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: 16 %p %u %u", &castspell->cs_unknown, *(uint16*) castspell->cs_unknown, *(uint16*) castspell->cs_unknown+sizeof(uint16) );
+	LogFile->write(EQEMuLog::Debug, "cs_unknown2: 16 %p %i %i", &castspell->cs_unknown, *(uint16*) castspell->cs_unknown, *(uint16*) castspell->cs_unknown+sizeof(uint16) );
 #endif
-LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv=%lx", castspell->slot, castspell->spell_id, castspell->target_id, (unsigned long)castspell->inventoryslot);
+	LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv=%lx", castspell->slot, castspell->spell_id, castspell->target_id, (unsigned long)castspell->inventoryslot);
 
-	if ((castspell->slot == USE_ITEM_SPELL_SLOT) || (castspell->slot == POTION_BELT_SPELL_SLOT))	// this means item
+	if ((castspell->slot == USE_ITEM_SPELL_SLOT) || (castspell->slot == POTION_BELT_SPELL_SLOT))	// ITEM or POTION cast
 	{
 		//discipline, using the item spell slot
-		if(castspell->inventoryslot == 0xFFFFFFFF) {
-			if(!UseDiscipline(castspell->spell_id, castspell->target_id)) {
-				LogFile->write(EQEMuLog::Debug, "Unknown ability being used by %s, spell being cast is: %i\n",GetName(),castspell->spell_id);
+		if (castspell->inventoryslot == 0xFFFFFFFF) {
+			if (!UseDiscipline(castspell->spell_id, castspell->target_id)) {
+				LogFile->write(EQEMuLog::Debug, "Unknown ability being used by %s, spell being cast is: %i\n", GetName(), castspell->spell_id);
 				InterruptSpell(castspell->spell_id);
 			}
 			return;
@@ -4516,7 +4516,7 @@ LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv
 			if (inst && inst->IsType(ItemClassCommon))
 			{
 				const Item_Struct* item = inst->GetItem();
-				if(item->Click.Effect != (uint32)castspell->spell_id)
+				if (item->Click.Effect != (uint32)castspell->spell_id)
 				{
 					database.SetMQDetectionFlag(account_name, name, "OP_CastSpell with item, tried to cast a different spell.", zone->GetShortName());
 					InterruptSpell(castspell->spell_id);	//CHEATER!!
@@ -4525,16 +4525,17 @@ LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv
 
 				if ((item->Click.Type == ET_ClickEffect) || (item->Click.Type == ET_Expendable) || (item->Click.Type == ET_EquipClick) || (item->Click.Type == ET_ClickEffect2))
 				{
-					if(item->Click.Level2 > 0)
+					if (item->Click.Level2 > 0)
 					{
-						if(GetLevel() >= item->Click.Level2)
+						if (GetLevel() >= item->Click.Level2)
 						{
 							ItemInst* p_inst = (ItemInst*)inst;
 							int i = parse->EventItem(EVENT_ITEM_CLICK_CAST, this, p_inst, nullptr, "", castspell->inventoryslot);
 
-							if(i == 0) {
+							if (i == 0) {
 								CastSpell(item->Click.Effect, castspell->target_id, castspell->slot, item->CastTime, 0, 0, castspell->inventoryslot);
-							} else {
+							}
+							else {
 								InterruptSpell(castspell->spell_id);
 								return;
 							}
@@ -4551,9 +4552,10 @@ LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv
 						ItemInst* p_inst = (ItemInst*)inst;
 						int i = parse->EventItem(EVENT_ITEM_CLICK_CAST, this, p_inst, nullptr, "", castspell->inventoryslot);
 
-						if(i == 0) {
+						if (i == 0) {
 							CastSpell(item->Click.Effect, castspell->target_id, castspell->slot, item->CastTime, 0, 0, castspell->inventoryslot);
-						} else {
+						}
+						else {
 							InterruptSpell(castspell->spell_id);
 							return;
 						}
@@ -4576,46 +4578,48 @@ LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv
 			InterruptSpell(castspell->spell_id);
 		}
 	}
-	else	// ability, or regular memmed spell
-	{
+	else if (castspell->slot == DISCIPLINE_SPELL_SLOT) {	// DISCIPLINE cast
+		if (!UseDiscipline(castspell->spell_id, castspell->target_id)) {
+			printf("Unknown ability being used by %s, spell being cast is: %i\n", GetName(), castspell->spell_id);
+			InterruptSpell(castspell->spell_id);
+			return;
+		}
+	}
+	else if (castspell->slot == ABILITY_SPELL_SLOT) {	// ABILITY cast (LoH and Harm Touch)
 		uint16 spell_to_cast = 0;
 
-		//current client seems to send LH in slot 8 now...
-		if(castspell->slot == ABILITY_SPELL_SLOT &&
-			castspell->spell_id == SPELL_LAY_ON_HANDS && GetClass() == PALADIN) {
-			if(!p_timers.Expired(&database, pTimerLayHands)) {
-				Message(13,"Ability recovery time not yet met.");
+		if (castspell->spell_id == SPELL_LAY_ON_HANDS && GetClass() == PALADIN) {
+			if (!p_timers.Expired(&database, pTimerLayHands)) {
+				Message(13, "Ability recovery time not yet met.");
 				InterruptSpell(castspell->spell_id);
 				return;
 			}
 			spell_to_cast = SPELL_LAY_ON_HANDS;
 			p_timers.Start(pTimerLayHands, LayOnHandsReuseTime);
-		} else if(castspell->slot == ABILITY_SPELL_SLOT &&
-			(castspell->spell_id == SPELL_HARM_TOUCH
-				|| castspell->spell_id == SPELL_HARM_TOUCH2
-			) && GetClass() == SHADOWKNIGHT) {
-
-			if(!p_timers.Expired(&database, pTimerHarmTouch)) {
-				Message(13,"Ability recovery time not yet met.");
+		}
+		else if ((castspell->spell_id == SPELL_HARM_TOUCH
+			|| castspell->spell_id == SPELL_HARM_TOUCH2) && GetClass() == SHADOWKNIGHT) {
+			if (!p_timers.Expired(&database, pTimerHarmTouch)) {
+				Message(13, "Ability recovery time not yet met.");
 				InterruptSpell(castspell->spell_id);
 				return;
 			}
 
-			if(GetLevel() < 40)
+			// determine which version of HT we are casting based on level
+			if (GetLevel() < 40)
 				spell_to_cast = SPELL_HARM_TOUCH;
 			else
 				spell_to_cast = SPELL_HARM_TOUCH2;
+
 			p_timers.Start(pTimerHarmTouch, HarmTouchReuseTime);
 		}
-
-		//handle disciplines, OLD, they keep changing this
-		if(castspell->slot == DISCIPLINE_SPELL_SLOT) {
-			if(!UseDiscipline(castspell->spell_id, castspell->target_id)) {
-				printf("Unknown ability being used by %s, spell being cast is: %i\n",GetName(),castspell->spell_id);
-				InterruptSpell(castspell->spell_id);
-			}
-			return;
-		}
+		
+		if (spell_to_cast > 0)	// if we've matched LoH or HT, cast now
+			CastSpell(spell_to_cast, castspell->target_id, castspell->slot);
+	}
+	else	// MEMORIZED SPELL (first confirm that it's a valid memmed spell slot, then validate that the spell is currently memorized)
+	{
+		uint16 spell_to_cast = 0;
 
 		if(castspell->slot < MAX_PP_MEMSPELL)
 		{
@@ -4626,7 +4630,7 @@ LogFile->write(EQEMuLog::Debug, "OP CastSpell: slot=%d, spell=%d, target=%d, inv
 				return;
 			}
 		}
-		else {
+		else if (castspell->slot >= MAX_PP_MEMSPELL) {
 			InterruptSpell();
 			return;
 		}
@@ -5501,7 +5505,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 	uint32 item_id = 0;
 	std::list<MerchantList> merlist = zone->merchanttable[merchantid];
 	std::list<MerchantList>::const_iterator itr;
-	for(itr = merlist.begin();itr != merlist.end();itr++){
+	for(itr = merlist.begin();itr != merlist.end();++itr){
 		MerchantList ml = *itr;
 		if(GetLevel() < ml.level_required) {
 			continue;
@@ -5523,7 +5527,7 @@ void Client::Handle_OP_ShopPlayerBuy(const EQApplicationPacket *app)
 		std::list<TempMerchantList> tmp_merlist = zone->tmpmerchanttable[tmp->GetNPCTypeID()];
 		std::list<TempMerchantList>::const_iterator tmp_itr;
 		TempMerchantList ml;
-		for(tmp_itr = tmp_merlist.begin();tmp_itr != tmp_merlist.end();tmp_itr++){
+		for(tmp_itr = tmp_merlist.begin();tmp_itr != tmp_merlist.end();++tmp_itr){
 			ml = *tmp_itr;
 			if(mp->itemslot == ml.slot){
 				item_id = ml.item;
@@ -7015,7 +7019,13 @@ void Client::Handle_OP_PetCommands(const EQApplicationPacket *app)
 			Message_StringID(10, CANNOT_WAKE, mypet->GetCleanName(), GetTarget()->GetCleanName());
 			break;
 		}
-		if (mypet->IsFeared()) break; //prevent pet from attacking stuff while feared
+		if (mypet->IsFeared())
+			break; //prevent pet from attacking stuff while feared
+
+		if (!mypet->IsAttackAllowed(GetTarget())) {
+			mypet->Say_StringID(NOT_LEGAL_TARGET);
+			break;
+		}
 
 		if((mypet->GetPetType() == petAnimation && GetAA(aaAnimationEmpathy) >= 2) || mypet->GetPetType() != petAnimation) {
 			if (GetTarget() != this && mypet->DistNoRootNoZ(*GetTarget()) <= (RuleR(Pets, AttackCommandRange)*RuleR(Pets, AttackCommandRange))) {
@@ -7349,8 +7359,13 @@ void Client::Handle_OP_Emote(const EQApplicationPacket *app)
 	const char* name	= GetName();
 	uint32 len_name		= strlen(name);
 	uint32 len_msg		= strlen(in->message);
+	// crash protection -- cheater
+	if (len_msg > 512) {
+		in->message[512] = '\0';
+		len_msg = 512;
+	}
 	uint32 len_packet	= sizeof(in->unknown01) + len_name
-						+ strlen(in->message) + 1;
+						+ len_msg + 1;
 
 	// Construct outgoing packet
 	EQApplicationPacket* outapp = new EQApplicationPacket(OP_Emote, len_packet);
@@ -7377,7 +7392,7 @@ void Client::Handle_OP_Emote(const EQApplicationPacket *app)
 	}
 	else
 	*/
-	entity_list.QueueCloseClients(this, outapp, true, 100,0,true,FilterSocials);
+	entity_list.QueueCloseClients(this, outapp, true, 100, 0, true, FilterSocials);
 
 	safe_delete(outapp);
 	return;
@@ -9139,7 +9154,7 @@ bool Client::FinishConnState2(DBAsyncWork* dbaw) {
 	//Remake pet
 	if (m_petinfo.SpellID > 1 && !GetPet() && m_petinfo.SpellID <= SPDAT_RECORDS)
 	{
-		MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower, m_petinfo.Name);
+		MakePoweredPet(m_petinfo.SpellID, spells[m_petinfo.SpellID].teleport_zone, m_petinfo.petpower, m_petinfo.Name, m_petinfo.size);
 		if (GetPet() && GetPet()->IsNPC()) {
 			NPC *pet = GetPet()->CastToNPC();
 			pet->SetPetState(m_petinfo.Buffs, m_petinfo.Items);
@@ -9205,7 +9220,7 @@ bool Client::FinishConnState2(DBAsyncWork* dbaw) {
 
 		// Send stuff on the cursor which isnt sent in bulk
 		iter_queue it;
-		for (it=m_inv.cursor_begin();it!=m_inv.cursor_end();it++) {
+		for (it=m_inv.cursor_begin();it!=m_inv.cursor_end();++it) {
 			// First item cursor is sent in bulk inventory packet
 			if (it==m_inv.cursor_begin())
 				continue;
@@ -12529,7 +12544,7 @@ void Client::Handle_OP_AltCurrencyMerchantRequest(const EQApplicationPacket *app
 				found = true;
 				break;
 			}
-			altc_iter++;
+			++altc_iter;
 		}
 
 		if(!found) {
@@ -12545,7 +12560,7 @@ void Client::Handle_OP_AltCurrencyMerchantRequest(const EQApplicationPacket *app
 
 		std::list<MerchantList> merlist = zone->merchanttable[merchant_id];
 		std::list<MerchantList>::const_iterator itr;
-		for(itr = merlist.begin(); itr != merlist.end() && count < 255; itr++){
+		for(itr = merlist.begin(); itr != merlist.end() && count < 255; ++itr){
 			const MerchantList &ml = *itr;
 			if(GetLevel() < ml.level_required) {
 				continue;
@@ -12612,7 +12627,7 @@ void Client::Handle_OP_AltCurrencySellSelection(const EQApplicationPacket *app) 
 		bool found = false;
 		std::list<MerchantList> merlist = zone->merchanttable[merchant_id];
 		std::list<MerchantList>::const_iterator itr;
-		for(itr = merlist.begin(); itr != merlist.end(); itr++) {
+		for(itr = merlist.begin(); itr != merlist.end(); ++itr) {
 			MerchantList ml = *itr;
 			if(GetLevel() < ml.level_required) {
 				continue;
@@ -12674,7 +12689,7 @@ void Client::Handle_OP_AltCurrencyPurchase(const EQApplicationPacket *app) {
 		bool found = false;
 		std::list<MerchantList> merlist = zone->merchanttable[merchant_id];
 		std::list<MerchantList>::const_iterator itr;
-		for(itr = merlist.begin(); itr != merlist.end(); itr++) {
+		for(itr = merlist.begin(); itr != merlist.end(); ++itr) {
 			MerchantList ml = *itr;
 			if(GetLevel() < ml.level_required) {
 				continue;
@@ -12736,7 +12751,7 @@ void Client::Handle_OP_AltCurrencyReclaim(const EQApplicationPacket *app) {
 		if((*iter).id == reclaim->currency_id) {
 			item_id = (*iter).item_id;
 		}
-		iter++;
+		++iter;
 	}
 
 	if(item_id == 0) {
@@ -12791,7 +12806,7 @@ void Client::Handle_OP_AltCurrencySell(const EQApplicationPacket *app) {
 		bool found = false;
 		std::list<MerchantList> merlist = zone->merchanttable[merchant_id];
 		std::list<MerchantList>::const_iterator itr;
-		for(itr = merlist.begin(); itr != merlist.end(); itr++) {
+		for(itr = merlist.begin(); itr != merlist.end(); ++itr) {
 			MerchantList ml = *itr;
 			if(GetLevel() < ml.level_required) {
 				continue;
@@ -13483,10 +13498,10 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 		int i = 0;
 		int StanceCount = 0;
 
-		for(std::list<MercData>::iterator mercListItr = mercDataList.begin(); mercListItr != mercDataList.end(); mercListItr++)
+		for(std::list<MercData>::iterator mercListItr = mercDataList.begin(); mercListItr != mercDataList.end(); ++mercListItr)
 		{
 			std::list<MercStanceInfo>::iterator siter = zone->merc_stance_list[mercListItr->MercTemplateID].begin();
-			for(siter = zone->merc_stance_list[mercListItr->MercTemplateID].begin(); siter != zone->merc_stance_list[mercListItr->MercTemplateID].end(); siter++)
+			for(siter = zone->merc_stance_list[mercListItr->MercTemplateID].begin(); siter != zone->merc_stance_list[mercListItr->MercTemplateID].end(); ++siter)
 			{
 				StanceCount++;
 			}
@@ -13498,7 +13513,7 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 		mml->MercTypeCount = mercTypeCount;
 		if(mercTypeCount > 0)
 		{
-			for(std::list<MercType>::iterator mercTypeListItr = mercTypeList.begin(); mercTypeListItr != mercTypeList.end(); mercTypeListItr++) {
+			for(std::list<MercType>::iterator mercTypeListItr = mercTypeList.begin(); mercTypeListItr != mercTypeList.end(); ++mercTypeListItr) {
 			mml->MercGrades[i] = mercTypeListItr->Type;	// DBStringID for Type
 			i++;
 			}
@@ -13508,7 +13523,7 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 		if(mercCount > 0)
 		{
 			i = 0;
-			for(std::list<MercData>::iterator mercListIter = mercDataList.begin(); mercListIter != mercDataList.end(); mercListIter++)
+			for(std::list<MercData>::iterator mercListIter = mercDataList.begin(); mercListIter != mercDataList.end(); ++mercListIter)
 			{
 				mml->Mercs[i].MercID = mercListIter->MercTemplateID;
 				mml->Mercs[i].MercType = mercListIter->MercType;
@@ -13525,7 +13540,7 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 				mml->Mercs[i].MercUnk02 = 1;
 				int mercStanceCount = 0;
 				std::list<MercStanceInfo>::iterator iter = zone->merc_stance_list[mercListIter->MercTemplateID].begin();
-				for(iter = zone->merc_stance_list[mercListIter->MercTemplateID].begin(); iter != zone->merc_stance_list[mercListIter->MercTemplateID].end(); iter++)
+				for(iter = zone->merc_stance_list[mercListIter->MercTemplateID].begin(); iter != zone->merc_stance_list[mercListIter->MercTemplateID].end(); ++iter)
 				{
 				mercStanceCount++;
 				}
@@ -13542,7 +13557,7 @@ void Client::Handle_OP_MercenaryDataRequest(const EQApplicationPacket *app)
 						mml->Mercs[i].Stances[stanceindex].StanceIndex = stanceindex;
 						mml->Mercs[i].Stances[stanceindex].Stance = (iter2->StanceID);
 						stanceindex++;
-						iter2++;
+						++iter2;
 					}
 				}
 				i++;
@@ -13677,7 +13692,7 @@ void Client::Handle_OP_MercenaryCommand(const EQApplicationPacket *app)
 			std::list<MercStanceInfo>::iterator iter = mercStanceList.begin();
 			while(iter != mercStanceList.end()) {
 				numStances++;
-				iter++;
+				++iter;
 			}
 
 			MercTemplate* mercTemplate = zone->GetMercTemplate(GetMerc()->GetMercTemplateID());

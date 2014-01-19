@@ -189,7 +189,7 @@ void NPC::DescribeAggro(Client *towho, Mob *mob, bool verbose) {
 			cur = faction_list.begin();
 			end = faction_list.end();
 			bool res = false;
-			for(; cur != end; cur++) {
+			for(; cur != end; ++cur) {
 				struct NPCFaction* fac = *cur;
 				if ((int32)fac->factionID == mob_primary) {
 					if (fac->npc_value > 0) {
@@ -1347,7 +1347,7 @@ int32 Mob::CheckHealAggroAmount(uint16 spellid, uint32 heal_possible) {
 	for (int o = 0; o < EFFECT_COUNT; o++) {
 		switch(spells[spell_id].effectid[o]) {
 			case SE_CurrentHP: {
-				AggroAmount += spells[spell_id].mana;
+				AggroAmount += IsBuffSpell(spell_id) ? spells[spell_id].mana / 4 : spells[spell_id].mana;
 				break;
 			}
 			case SE_Rune: {
